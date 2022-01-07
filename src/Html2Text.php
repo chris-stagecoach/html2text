@@ -69,6 +69,7 @@ class Html2Text
         '/<td\b[^>]*>(.*?)<\/td>/i',                      // <td> and </td>
         '/<span class="_html2text_ignore">.+?<\/span>/i', // <span class="_html2text_ignore">...</span>
         '/<(img)\b[^>]*alt=\"([^>"]+)\"[^>]*>/i',         // <img> with alt tag
+        '/{{Return Path Client Monitor Pixel::AnJPmknHEeqhzAAVXQOx6A2}}/', // ReturnPath pixel
     );
 
     /**
@@ -83,8 +84,8 @@ class Html2Text
         '',                              // <head>
         '',                              // <script>s -- which strip_tags supposedly has problems with
         '',                              // <style>s -- which strip_tags supposedly has problems with
-        '_\\1_',                         // <i>
-        '_\\1_',                         // <em>
+        '\\1',                           // <i>
+        '\\1',                           // <em>
         '_\\1_',                         // <ins>
         "\n\n",                          // <ul> and </ul>
         "\n\n",                          // <ol> and </ol>
@@ -97,9 +98,10 @@ class Html2Text
         "<div>\n",                       // <div>
         "\n\n",                          // <table> and </table>
         "\n",                            // <tr> and </tr>
-        "\t\t\\1\n",                     // <td> and </td>
+        "\\1\n",                         // <td> and </td>
         "",                              // <span class="_html2text_ignore">...</span>
         '[\\2]',                         // <img> with alt tag
+        '',                              // ReturnPathPixel
     );
 
     /**
@@ -425,7 +427,7 @@ class Html2Text
             $url = $link;
         } else {
             $url = $this->baseurl;
-            if (mb_substr($link, 0, 1) != '/') {
+            if (mb_substr($link, 0, 1) != '/' && strpos($link,'UnsubscribeUrl') === FALSE) {
                 $url .= '/';
             }
             $url .= $link;
@@ -449,7 +451,27 @@ class Html2Text
             if ($url === $display) {
                 return $display;
             }
-            return $display . ' [' . $url . ']';
+            if (strpos($link, '{{if') !== FALSE) {
+                preg_match('/{{if\s\w+}}/', $link, $if);
+                preg_match('/(.*){{if\s\w+}}/', $link, $prematch);
+                preg_match('/{{if\s\w+}}(.*){{else}}/', $link, $if_match);
+                preg_match('/{{else}}(.*){{end}}/', $link, $else_match);
+                preg_match('/{{end}}(.*)/', $link, $postmatch);
+                return $if[0] . "\n" . $display . ' (' . $prematch[1] . $if_match[1] . $postmatch[1] . ")\n{{else}}\n" . $display . ' [' . $prematch[1] . $else_match[1] . $postmatch[1] . "]\n{{end}}";
+            } else {
+                if ($this->options['sender'] == 'National Audubon Society') {
+                    if ($display == '[Facebook]') {
+                        return "=============\nConnect with Us\n\nFacebook: http://www.facebook.com/NationalAudubonSociety";
+                    }
+                    if ($display == '[Twitter]') {
+                        return "\n\nTwitter: http://twitter.com/audubonsociety/";
+                    }
+                    if ($display == '[Instagram]') {
+                        return "\n\nInstagram: https://www.instagram.com/audubonsociety/\n=============";
+                    }
+                }
+                return $display . ' (' . $url . ')';
+            }
         }
     }
 
@@ -584,7 +606,11 @@ class Html2Text
                     $linkOverride = $linkOverrideMatch[1];
                 }
                 // Remove spaces in URL (#1487805)
-                $url = str_replace(' ', '', $matches[3]);
+                if (strpos($matches[3], '{{if') === FALSE) {
+                    $url = str_replace(' ', '', $matches[3]);
+                } else {
+                    $url = $matches[3];
+                }
 
                 return $this->buildlinkList($url, $matches[5], $linkOverride);
         }
