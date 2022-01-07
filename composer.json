@@ -3,6 +3,12 @@
     "description": "Converts HTML to formatted plain text",
     "type": "library",
     "license": "GPL-2.0-or-later",
+    "repositories": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/chris-stagecoach/html2text.git"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Html2Text\\": "src/"
