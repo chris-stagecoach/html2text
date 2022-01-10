@@ -592,7 +592,7 @@ class Html2Text
                 return "\n";
             case 'b':
             case 'strong':
-                return $this->toupper($matches[3]);
+                return $matches[3];
             case 'del':
                 return $this->tostrike($matches[3]);
             case 'th':
