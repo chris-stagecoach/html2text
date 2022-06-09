@@ -70,6 +70,7 @@ class Html2Text
         '/<span class="_html2text_ignore">.+?<\/span>/i', // <span class="_html2text_ignore">...</span>
         '/<(img)\b[^>]*alt=\"([^>"]+)\"[^>]*>/i',         // <img> with alt tag
         '/{{Return Path Client Monitor Pixel::AnJPmknHEeqhzAAVXQOx6A2}}/', // ReturnPath pixel
+        '/{{Everest Tracking Pixel::Zhzc1-f5Eey0eigYeLg9ig2}}/', // Everest pixel
     );
 
     /**
@@ -101,7 +102,8 @@ class Html2Text
         "\\1\n",                         // <td> and </td>
         "",                              // <span class="_html2text_ignore">...</span>
         '[\\2]',                         // <img> with alt tag
-        '',                              // ReturnPathPixel
+        '',                              // ReturnPath pixel
+        '',                              // Everest pixel
     );
 
     /**
